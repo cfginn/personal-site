@@ -24,12 +24,15 @@ jobs:
       - name: Build the React app
         run: npm run build
 
-      - name: Set up gcloud
-        uses: GoogleCloudPlatform/github-actions/setup-gcloud@v1
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: ${{ secrets.GCLOUD_SERVICE_KEY }}
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v1'
         with:
           project_id: ${{ secrets.GCLOUD_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCLOUD_SERVICE_KEY }}
 
       - name: Deploy to Google Cloud
-        run: |
-          gcloud app deploy --quiet
+        run: gcloud app deploy --quiet
