@@ -1,0 +1,81 @@
+:root {
+  color-scheme: light;
+  --surface-1: #fcfcfb;
+  --plane: #f9f9f7;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --muted: #898781;
+  --grid: #e1e0d9;
+  --baseline: #c3c2b7;
+  --border: rgba(11,11,11,0.10);
+  --series-1: #2a78d6;
+  --series-1-wash: rgba(42,120,214,0.10);
+  --series-3: #1baf7a;
+  --series-3-wash: rgba(27,175,122,0.12);
+  --success: #006300;
+  --field: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --surface-1: #1a1a19;
+    --plane: #0d0d0d;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --baseline: #383835;
+    --border: rgba(255,255,255,0.10);
+    --series-1: #3987e5;
+    --series-1-wash: rgba(57,135,229,0.14);
+    --series-3: #199e70;
+    --series-3-wash: rgba(25,158,112,0.16);
+    --success: #0ca30c;
+    --field: #232322;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-1: #1a1a19;
+  --plane: #0d0d0d;
+  --text-primary: #ffffff;
+  --text-secondary: #c3c2b7;
+  --muted: #898781;
+  --grid: #2c2c2a;
+  --baseline: #383835;
+  --border: rgba(255,255,255,0.10);
+  --series-1: #3987e5;
+  --series-1-wash: rgba(57,135,229,0.14);
+  --series-3: #199e70;
+  --series-3-wash: rgba(25,158,112,0.16);
+  --success: #0ca30c;
+  --field: #232322;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--plane);
+  color: var(--text-primary);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 940px; margin: 0 auto; padding: 28px 20px 72px; }
+
+.theme-btn {
+  flex: none; background: var(--surface-1); color: var(--text-secondary);
+  border: 1px solid var(--border); border-radius: 8px; padding: 7px 12px;
+  font: inherit; font-size: 13px; cursor: pointer;
+}
+.theme-btn:hover { color: var(--text-primary); }
+
+.btn {
+  background: var(--series-1); color: #fff; border: none; border-radius: 8px;
+  padding: 9px 15px; font: inherit; font-size: 13.5px; font-weight: 550; cursor: pointer;
+  text-decoration: none; display: inline-block;
+}
+.btn:hover { filter: brightness(1.06); }
+.btn.ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
+.btn.ghost:hover { color: var(--text-primary); }
