@@ -290,11 +290,18 @@
       </table>
     </div>
     <div class="foot-actions">
-      <button class="btn" id="copyBtn" type="button">Copy summary for the group chat</button>
-      <button class="btn ghost" id="showBtn" type="button">Preview it</button>
-      <span class="copied" id="copied" hidden>Copied</span>
+      <button class="btn" id="copyPreBtn" type="button">Copy pre-commit summary</button>
+      <button class="btn ghost" id="showPreBtn" type="button">Preview it</button>
+      <span class="copied" id="copiedPre" hidden>Copied</span>
     </div>
-    <pre class="summary" id="summary" hidden></pre>
+    <pre class="summary" id="summaryPre" hidden></pre>
+
+    <div class="foot-actions">
+      <button class="btn" id="copyCommitBtn" type="button">Copy her final breakdown</button>
+      <button class="btn ghost" id="showCommitBtn" type="button">Preview it</button>
+      <span class="copied" id="copiedCommit" hidden>Copied</span>
+    </div>
+    <pre class="summary" id="summaryCommit" hidden></pre>
   </section>
 
 </div>
@@ -306,7 +313,7 @@
   "use strict";
 
   var $ = function (id) { return document.getElementById(id); };
-  var DEFAULT_NAMES = ["Jasmyn", "Priscilla", "Jordyn", "Devon", "Krystal", "Rae"];
+  var DEFAULT_NAMES = ["Jasmyn", "Jordyn", "Priscilla", "Devon", "Krystal", "Rae"];
   var names = DEFAULT_NAMES.slice();
 
   /* ---------- formatting ---------- */
@@ -603,8 +610,13 @@
       m.people.reduce(function (a, p) { return a + p.owes; }, 0)
     ) + "</td><td></td><td>" + usd(m.paid + m.C) + "</td><td></td></tr>";
 
-    window.__summary = buildSummary(m);
-    if (!$("summary").hidden) { $("summary").textContent = window.__summary; }
+    $("copyPreBtn").textContent = "Copy pre-commit summary (without " + m.wildName + ")";
+    $("copyCommitBtn").textContent = "Copy " + m.wildName + "'s final breakdown";
+
+    window.__summaryPre = buildPreCommitSummary(m);
+    window.__summaryCommit = buildCommitSummary(m);
+    if (!$("summaryPre").hidden) { $("summaryPre").textContent = window.__summaryPre; }
+    if (!$("summaryCommit").hidden) { $("summaryCommit").textContent = window.__summaryCommit; }
   }
 
   var WORDS = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
@@ -616,48 +628,51 @@
     });
   }
 
-  function buildSummary(m) {
+  /* Assumes she isn't in yet — no mention of how her cost would shift by night count. */
+  function buildPreCommitSummary(m) {
     var L = [];
     L.push("HOTEL SPLIT — " + usd(m.T) + " total, " + m.tripNights + " nights");
     L.push("");
-    L.push("Rate: " + usd(m.rBaseWithout, true) + "/night for the " + m.nL + "-night girls, " +
-           usd(m.rPremWithout, true) + "/night for the " + m.nS + "-night girls" +
+    L.push("Rate (assuming " + m.wildName + " isn't in yet): " + usd(m.rBaseWithout, true) + "/night for the " +
+           m.nL + "-night girls, " + usd(m.rPremWithout, true) + "/night for the " + m.nS + "-night girls" +
            (m.k > 1.005 ? " (" + pct(m.k - 1) + " premium)" : ""));
     L.push("");
-    L.push("IF " + m.wildName.toUpperCase() + " ISN'T IN — everyone pays:");
+    L.push("For now, here's what everyone owes:");
     m.people.forEach(function (p) {
       L.push("  " + p.name + " (" + p.nights + " nights) — " + usd(p.owes));
     });
-    if (m.coming) {
-      L.push("");
-      L.push("IF " + m.wildName.toUpperCase() + " IS IN for " + m.n6 + (m.n6 === 1 ? " night" : " nights") +
-             " — everyone drops " + pct(1 - m.factor, 1) + ":");
-      m.people.forEach(function (p) {
-        L.push("  " + p.name + " — " + usd(p.effective) + "  (was " + usd(p.owes) + ")");
-      });
-      L.push("");
-      L.push(m.wildName + " owes " + usd(m.C) + " total (" + m.n6 +
-             (m.n6 === 1 ? " night" : " nights") + " at " + usd(m.wildRate, true) +
-             "/night) — send it straight to:");
-      m.people.forEach(function (p) {
-        L.push("  " + p.name + " — " + usd(p.offset));
-      });
-      if (m.evenRate) {
-        L.push("");
-        L.push("Everyone, " + m.wildName + " included, is at " + usd(m.rBase, true) + "/night.");
-      }
-    }
-    if (!m.evenRate) {
-      L.push("");
-      L.push(m.wildName + " — your rate depends on how many nights you're in for:");
-      m.ladder.forEach(function (r) {
-        if (r.nights === 0) return;
-        L.push("  " + r.nights + (r.nights === 1 ? " night  — " : " nights — ") +
-               usd(r.rate, true) + "/night, " + usd(r.total) + " total");
-      });
-    }
     L.push("");
-    L.push("Checks out: " + usd(m.paid) + (m.coming ? " + " + usd(m.C) : "") + " = " + usd(m.T));
+    L.push("We really want you there with us, " + m.wildName +
+           "! Let us know when you can commit and we'll update you with how much it'll cost.");
+    L.push("");
+    L.push("Heads up: when you do join, you'll pay your share to each of us individually, not one lump sum " +
+           "— so everyone gets a little money back from you.");
+    return L.join("\n");
+  }
+
+  /* The exact breakdown once she's committed to a specific number of nights. */
+  function buildCommitSummary(m) {
+    var L = [];
+    L.push(m.wildName.toUpperCase() + "'S BREAKDOWN — " + usd(m.T) + " total, " + m.tripNights + " nights");
+    L.push("");
+    if (!m.coming) {
+      L.push(m.wildName + " isn't down for any nights yet — pick a night count in \"The sixth spot\" above to fill this in.");
+      return L.join("\n");
+    }
+    L.push(m.wildName + " is in for " + m.n6 + (m.n6 === 1 ? " night" : " nights") + " at " +
+           usd(m.wildRate, true) + "/night" +
+           (m.s > 1.005 ? ", including the " + pct(m.s - 1) + " flexibility premium" : "") + ".");
+    L.push("Total owed: " + usd(m.C));
+    L.push("");
+    L.push("Send it straight to:");
+    m.people.forEach(function (p) {
+      L.push("  " + p.name + " — " + usd(p.offset));
+    });
+    L.push("");
+    L.push("That brings everyone's total down to:");
+    m.people.forEach(function (p) {
+      L.push("  " + p.name + " — " + usd(p.effective) + "  (was " + usd(p.owes) + ")");
+    });
     return L.join("\n");
   }
 
@@ -711,26 +726,31 @@
     c.addEventListener("click", function () { $("k").value = c.dataset.k; render(); });
   });
 
-  $("copyBtn").addEventListener("click", function () {
-    var txt = window.__summary || "";
-    var done = function () {
-      $("copied").hidden = false;
-      setTimeout(function () { $("copied").hidden = true; }, 1800);
-    };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(txt).then(done, function () {
-        $("summary").hidden = false; $("summary").textContent = txt;
-      });
-    } else {
-      $("summary").hidden = false; $("summary").textContent = txt;
-    }
-  });
+  function wireCopy(copyBtnId, showBtnId, copiedId, summaryId, getText) {
+    $(copyBtnId).addEventListener("click", function () {
+      var txt = getText() || "";
+      var done = function () {
+        $(copiedId).hidden = false;
+        setTimeout(function () { $(copiedId).hidden = true; }, 1800);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(done, function () {
+          $(summaryId).hidden = false; $(summaryId).textContent = txt;
+        });
+      } else {
+        $(summaryId).hidden = false; $(summaryId).textContent = txt;
+      }
+    });
 
-  $("showBtn").addEventListener("click", function () {
-    var s = $("summary");
-    if (s.hidden) { s.textContent = window.__summary || ""; s.hidden = false; $("showBtn").textContent = "Hide it"; }
-    else { s.hidden = true; $("showBtn").textContent = "Preview it"; }
-  });
+    $(showBtnId).addEventListener("click", function () {
+      var s = $(summaryId);
+      if (s.hidden) { s.textContent = getText() || ""; s.hidden = false; $(showBtnId).textContent = "Hide it"; }
+      else { s.hidden = true; $(showBtnId).textContent = "Preview it"; }
+    });
+  }
+
+  wireCopy("copyPreBtn", "showPreBtn", "copiedPre", "summaryPre", function () { return window.__summaryPre; });
+  wireCopy("copyCommitBtn", "showCommitBtn", "copiedCommit", "summaryCommit", function () { return window.__summaryCommit; });
 
   buildNameFields();
   render();
